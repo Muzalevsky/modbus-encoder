@@ -1,4 +1,5 @@
 #include <ArduinoModbus.h>
+#include <ArduinoRS485.h>
 #include <EEPROM.h>
 #include <Ethernet.h>
 #include <SPI.h>
@@ -50,6 +51,14 @@ EthernetServer ethernetServer(MODBUS_PORT);
 ModbusTCPServer modbusServer;
 uint32_t encoderPosition = 0;
 unsigned long lastSsiReadMs = 0;
+
+uint16_t highRegisterWord(uint32_t value) {
+  return (uint16_t)(value >> 16);
+}
+
+uint16_t lowRegisterWord(uint32_t value) {
+  return (uint16_t)(value & 0xFFFF);
+}
 
 void setDefaultSettings() {
   settings.magic = SETTINGS_MAGIC;
@@ -104,23 +113,23 @@ void writeStaticRegisters() {
   modbusServer.holdingRegisterWrite(REG_IP_3, settings.ip[3]);
   modbusServer.holdingRegisterWrite(REG_MARKS_PER_REV, settings.marksPerRev);
   modbusServer.holdingRegisterWrite(REG_SSI_SIZE_BYTES, settings.ssiSizeBytes);
-  modbusServer.holdingRegisterWrite(REG_SERIAL_HIGH, highWord(settings.serialNumber));
-  modbusServer.holdingRegisterWrite(REG_SERIAL_LOW, lowWord(settings.serialNumber));
+  modbusServer.holdingRegisterWrite(REG_SERIAL_HIGH, highRegisterWord(settings.serialNumber));
+  modbusServer.holdingRegisterWrite(REG_SERIAL_LOW, lowRegisterWord(settings.serialNumber));
   modbusServer.holdingRegisterWrite(REG_FW_VERSION_MAJOR, settings.firmwareMajor);
   modbusServer.holdingRegisterWrite(REG_FW_VERSION_MINOR, settings.firmwareMinor);
   modbusServer.holdingRegisterWrite(REG_SAVE_SETTINGS, 0);
 }
 
 void writeReadOnlyRegisters() {
-  modbusServer.holdingRegisterWrite(REG_SERIAL_HIGH, highWord(settings.serialNumber));
-  modbusServer.holdingRegisterWrite(REG_SERIAL_LOW, lowWord(settings.serialNumber));
+  modbusServer.holdingRegisterWrite(REG_SERIAL_HIGH, highRegisterWord(settings.serialNumber));
+  modbusServer.holdingRegisterWrite(REG_SERIAL_LOW, lowRegisterWord(settings.serialNumber));
   modbusServer.holdingRegisterWrite(REG_FW_VERSION_MAJOR, settings.firmwareMajor);
   modbusServer.holdingRegisterWrite(REG_FW_VERSION_MINOR, settings.firmwareMinor);
 }
 
 void updatePositionRegisters() {
-  modbusServer.holdingRegisterWrite(REG_POSITION_HIGH, highWord(encoderPosition));
-  modbusServer.holdingRegisterWrite(REG_POSITION_LOW, lowWord(encoderPosition));
+  modbusServer.holdingRegisterWrite(REG_POSITION_HIGH, highRegisterWord(encoderPosition));
+  modbusServer.holdingRegisterWrite(REG_POSITION_LOW, lowRegisterWord(encoderPosition));
 }
 
 void applyWritableRegisters() {

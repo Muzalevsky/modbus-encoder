@@ -1,12 +1,11 @@
-#include <ArduinoModbus.h>
-#include <ArduinoRS485.h>
+#include <ModbusTCPServer.h>
 #include <EEPROM.h>
 #include <Ethernet.h>
 #include <SPI.h>
 
 // Arduino Nano + W5500 + SSI encoder + Modbus TCP skeleton.
 
-uint32_t const SETTINGS_MAGIC = 0x4D424534UL; // "MBE4"
+uint32_t const SETTINGS_MAGIC = 0x4D424531UL; // "MBE1"
 uint16_t const MODBUS_PORT = 502;
 
 uint8_t const W5500_CS_PIN = 10;
@@ -14,12 +13,12 @@ uint8_t const SSI_CS_PIN = 2;
 uint8_t const SSI_CLK_PIN = 3;
 uint8_t const SSI_DATA_PIN = 4;
 
-uint8_t const DEFAULT_IP[4] = {192, 168, 1, 13};
+uint8_t const DEFAULT_IP[4] = {192, 168, 1, 95};
 uint16_t const DEFAULT_MARKS_PER_REV = 4096;
-uint8_t const DEFAULT_SSI_SIZE_BITS = 22;
-uint8_t const DEFAULT_GRAY_TO_BINARY_ENABLED = 1;
-uint8_t const DEFAULT_POSITION_LSB_BIT = 0;
-uint8_t const DEFAULT_POSITION_MSB_BIT = 18;
+uint8_t const DEFAULT_SSI_SIZE_BITS = 18;
+uint8_t const DEFAULT_GRAY_TO_BINARY_ENABLED = 0;
+uint8_t const DEFAULT_POSITION_LSB_BIT = 6;
+uint8_t const DEFAULT_POSITION_MSB_BIT = 17;
 uint32_t const DEFAULT_SERIAL_NUMBER = 1;
 uint16_t const FIRMWARE_VERSION_MAJOR = 1;
 uint16_t const FIRMWARE_VERSION_MINOR = 0;
@@ -59,6 +58,7 @@ struct Settings
 
 Settings settings;
 EthernetServer ethernetServer(MODBUS_PORT);
+EthernetClient modbusClient;
 ModbusTCPServer modbusServer;
 uint32_t encoderPosition = 0;
 unsigned long lastSsiReadMs = 0;
@@ -293,17 +293,25 @@ void setup()
 
 void loop()
 {
-    EthernetClient client = ethernetServer.available();
-    if (client)
+    if (!modbusClient || !modbusClient.connected())
     {
-        modbusServer.accept(client);
+        modbusClient = ethernetServer.available();
+        if (modbusClient)
+        {
+            Serial.println(F("has client"));
+            modbusServer.accept(modbusClient);
+            Serial.println(F("accepted client"));
+        }
     }
 
-    modbusServer.poll();
+    if (modbusClient && modbusClient.connected())
+    {
+        modbusServer.poll();
+    }
     applyWritableRegisters();
     writeReadOnlyRegisters();
 
-    if (millis() - lastSsiReadMs >= 1000)
+    if (millis() - lastSsiReadMs >= 50)
     {
         lastSsiReadMs = millis();
         uint32_t rawFrame = readSSI();
@@ -313,6 +321,9 @@ void loop()
             encoderPosition = grayToBinary(encoderPosition);
         }
 
+        Serial.print(F("pos: "));
+        Serial.println(encoderPosition);
+    
         updatePositionRegisters();
     }
 }

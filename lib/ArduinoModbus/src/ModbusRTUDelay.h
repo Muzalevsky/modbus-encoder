@@ -34,14 +34,14 @@ public:
    * Paragraph 2.5.1.1 MODBUS Message RTU Framing
    * https://modbus.org/docs/Modbus_over_serial_line_V1_02.pdf
    */
-  static unsigned long const preDelay(unsigned long const baudrate)
+  static unsigned long preDelay(unsigned long const baudrate)
   {
     double const bit_duration = 1. / baudrate;
     double const word_len = 9.6f; // try also with 10.0f
     double const pre_delay_us = bit_duration * word_len * 3.5f * 1e6;
     return static_cast<unsigned long>(pre_delay_us);
   }
-  static unsigned long const postDelay(unsigned long const baudrate)
+  static unsigned long postDelay(unsigned long const baudrate)
   {
     return preDelay(baudrate);
   }

@@ -102,7 +102,11 @@ MODBUS_BEGIN_DECLS
  * an array of bytes to store responses and it will be compatible with the two
  * backends.
  */
+#if defined(ARDUINO) && defined(__AVR__)
+#define MODBUS_MAX_ADU_LENGTH              64
+#else
 #define MODBUS_MAX_ADU_LENGTH              260
+#endif
 
 /* Random number to avoid errno conflicts */
 #if defined(ARDUINO) && defined(__AVR__)

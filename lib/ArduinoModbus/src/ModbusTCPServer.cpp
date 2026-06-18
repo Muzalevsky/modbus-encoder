@@ -60,7 +60,7 @@ void ModbusTCPServer::accept(Client& client)
 int ModbusTCPServer::poll()
 {
   if (_client != NULL) {
-    uint8_t request[MODBUS_TCP_MAX_ADU_LENGTH];
+    static uint8_t request[MODBUS_TCP_MAX_ADU_LENGTH];
 
     int requestLength = modbus_receive(_mb, request);
 

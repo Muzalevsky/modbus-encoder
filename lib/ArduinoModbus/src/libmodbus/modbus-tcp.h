@@ -53,7 +53,11 @@ MODBUS_BEGIN_DECLS
 /* Modbus_Application_Protocol_V1_1b.pdf Chapter 4 Section 1 Page 5
  * TCP MODBUS ADU = 253 bytes + MBAP (7 bytes) = 260 bytes
  */
+#if defined(ARDUINO) && defined(__AVR__)
+#define MODBUS_TCP_MAX_ADU_LENGTH  64
+#else
 #define MODBUS_TCP_MAX_ADU_LENGTH  260
+#endif
 
 #ifdef ARDUINO
 #ifdef __NEED_NAMESPACE__

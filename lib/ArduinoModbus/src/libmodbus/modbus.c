@@ -63,8 +63,12 @@ const unsigned int libmodbus_version_major = LIBMODBUS_VERSION_MAJOR;
 const unsigned int libmodbus_version_minor = LIBMODBUS_VERSION_MINOR;
 const unsigned int libmodbus_version_micro = LIBMODBUS_VERSION_MICRO;
 
-/* Max between RTU and TCP max adu length (so TCP) */
+/* Max between RTU and TCP max adu length (so TCP). Keep AVR stack small. */
+#if defined(ARDUINO) && defined(__AVR__)
+#define MAX_MESSAGE_LENGTH 64
+#else
 #define MAX_MESSAGE_LENGTH 260
+#endif
 
 /* 3 steps are used to parse the query */
 typedef enum {

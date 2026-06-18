@@ -44,6 +44,10 @@ ModbusRTUClientClass::~ModbusRTUClientClass()
 
 int ModbusRTUClientClass::begin(unsigned long baudrate, uint16_t config)
 {
+  if (_rs485 == NULL) {
+    return 0;
+  }
+
   _rs485->setDelays(ModbusRTUDelay::preDelay(baudrate), ModbusRTUDelay::postDelay(baudrate));
 
   modbus_t* mb = modbus_new_rtu(_rs485, baudrate, config);

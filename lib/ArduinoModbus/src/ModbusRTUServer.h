@@ -47,7 +47,7 @@ public:
   virtual int poll();
 
 private:
-  RS485Class* _rs485 = &RS485;
+  RS485Class* _rs485 = NULL;
 };
 
 extern ModbusRTUServerClass ModbusRTUServer;
